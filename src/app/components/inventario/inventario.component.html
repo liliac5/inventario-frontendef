@@ -1,0 +1,158 @@
+<div class="inventario-container">
+  <app-sidebar></app-sidebar>
+  
+  <div class="main-content">
+    <div class="header">
+      <h1 class="welcome">¡Bienvenido/a, <span class="user-name">{{ currentUser }}</span>!</h1>
+    </div>
+
+    <div class="content-area">
+      <h2 class="page-title">INVENTARIO</h2>
+
+      <div class="actions-bar">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M13 13 L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Buscar..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()">
+        </div>
+        <button class="add-button" (click)="openAddModal()">
+          AGREGAR
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="inventario-table">
+          <thead>
+            <tr>
+              <th>CODIGO DE INVENTARIO</th>
+              <th>MODELO</th>
+              <th>FECHA DE ADQUISICION</th>
+              <th>UBICACION</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bien of filteredBienes">
+              <td>{{ bien.codigoInventario }}</td>
+              <td>{{ bien.modelo }}</td>
+              <td>{{ bien.fechaAdquisicion }}</td>
+              <td>{{ bien.ubicacion }}</td>
+              <td>
+                <button class="action-btn view-btn" (click)="viewDetails(bien)" title="Ver detalles">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 4 C6 4 3 6 1 10 C3 14 6 16 10 16 C14 16 17 14 19 10 C17 6 14 4 10 4 Z" 
+                          stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span class="page-dot active"></span>
+        <span class="page-dot"></span>
+        <span class="page-dot"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Agregar Nuevo Bien -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeAddModal()">×</button>
+    <h2 class="modal-title">Agregar Nuevo Bien</h2>
+    
+    <form class="modal-form" (ngSubmit)="saveBien()">
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-field">
+            <label>Código de Inventario *</label>
+            <input type="text" [(ngModel)]="nuevoBien.codigoInventario" name="codigoInventario" required>
+          </div>
+          <div class="form-field">
+            <label>Nombre del Bien *</label>
+            <input type="text" [(ngModel)]="nuevoBien.nombre" name="nombre" required>
+          </div>
+          <div class="form-field">
+            <label>Estado *</label>
+            <select [(ngModel)]="nuevoBien.estado" name="estado" required>
+              <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Fecha de Adquisición *</label>
+            <input type="date" [(ngModel)]="nuevoBien.fechaAdquisicion" name="fechaAdquisicion" required>
+          </div>
+        </div>
+        <div class="form-col">
+          <div class="form-field">
+            <label>Modelo *</label>
+            <input type="text" [(ngModel)]="nuevoBien.modelo" name="modelo" required>
+          </div>
+          <div class="form-field">
+            <label>Ubicación *</label>
+            <select [(ngModel)]="nuevoBien.ubicacion" name="ubicacion" required>
+              <option *ngFor="let ubicacion of ubicaciones" [value]="ubicacion">{{ ubicacion }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="btn-save">Guardar</button>
+        <button type="button" class="btn-cancel" (click)="closeAddModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Ver Detalles -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeDetailModal()">×</button>
+    <h2 class="modal-title">Detalles del Bien</h2>
+    
+    <div class="detail-content" *ngIf="selectedBien">
+      <div class="detail-item">
+        <span class="detail-label">Código de Inventario:</span>
+        <span class="detail-value">{{ selectedBien.codigoInventario }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Nombre del Bien:</span>
+        <span class="detail-value">{{ selectedBien.nombre }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Modelo:</span>
+        <span class="detail-value">{{ selectedBien.modelo }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Estado:</span>
+        <span class="detail-value">{{ selectedBien.estado }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Fecha de Adquisición:</span>
+        <span class="detail-value">{{ selectedBien.fechaAdquisicion }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Ubicación:</span>
+        <span class="detail-value">{{ selectedBien.ubicacion }}</span>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="closeDetailModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+

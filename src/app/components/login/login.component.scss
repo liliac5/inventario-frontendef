@@ -1,0 +1,354 @@
+.login-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.login-left {
+  flex: 1;
+  background: linear-gradient(180deg, #1565c0 0%, #1976d2 50%, #42a5f5 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 60px 50px;
+}
+
+.background-shapes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(66, 165, 245, 0.15);
+}
+
+.shape-1 {
+  width: 280px;
+  height: 280px;
+  top: -100px;
+  left: -100px;
+  background: rgba(187, 222, 251, 0.2);
+  border: 1px solid rgba(187, 222, 251, 0.3);
+}
+
+.shape-2 {
+  width: 200px;
+  height: 200px;
+  bottom: 8%;
+  right: 4%;
+  background: rgba(33, 150, 243, 0.15);
+  border: 1px solid rgba(33, 150, 243, 0.25);
+}
+
+.shape-3 {
+  width: 140px;
+  height: 140px;
+  top: 25%;
+  right: 12%;
+  background: rgba(100, 181, 246, 0.15);
+  border: 1px solid rgba(100, 181, 246, 0.25);
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(30px, -30px) rotate(120deg); }
+  66% { transform: translate(-20px, 20px) rotate(240deg); }
+}
+
+.checkmark-icon {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  z-index: 2;
+}
+
+.checkmark-circle {
+  width: 80px;
+  height: 80px;
+  background: rgba(187, 222, 251, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.checkmark-circle svg {
+  width: 32px;
+  height: 32px;
+}
+
+.logo-section {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: auto 0;
+}
+
+.logo-large {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.logo-image {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+}
+
+.institute-name {
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.slogan {
+  color: white;
+  font-size: 22px;
+  font-weight: 500;
+  opacity: 1;
+  margin-top: 25px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.promotional-message {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+}
+
+.promotional-message h2 {
+  color: white;
+  font-size: 38px;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.4;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.5px;
+}
+
+.login-right {
+  flex: 1;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+  position: relative;
+}
+
+.login-card {
+  background: white;
+  border-radius: 24px;
+  padding: 55px 50px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.logo-small {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.logo-image-small {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.institute-name-small {
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.slogan-small {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 8px;
+  letter-spacing: 0.3px;
+}
+
+.login-form {
+  margin-top: 30px;
+}
+
+.login-title {
+  color: #1a237e;
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.login-subtitle {
+  color: #757575;
+  font-size: 15px;
+  margin-bottom: 35px;
+  text-align: center;
+  font-weight: 400;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  color: #757575;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: #ff6f00;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 15px 50px 15px 48px;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  background: #fafafa;
+  color: #333;
+}
+
+.input-wrapper input::placeholder {
+  color: #9e9e9e;
+}
+
+.input-wrapper input:focus {
+  border-color: #ff6f00;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(255, 111, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.eye-icon {
+  position: absolute;
+  right: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.eye-icon:hover {
+  color: #ff6f00;
+}
+
+.login-button {
+  width: 100%;
+  background: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 18px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 25px;
+  box-shadow: 0 6px 20px rgba(255, 111, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.5px;
+}
+
+.login-button:hover {
+  background: linear-gradient(135deg, #ff8f00 0%, #ffa726 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255, 111, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.login-button:active {
+  transform: translateY(-1px);
+}
+
+.login-button svg {
+  transition: transform 0.3s ease;
+}
+
+.login-button:hover svg {
+  transform: translateX(3px);
+}
+
+@media (max-width: 968px) {
+  .login-container {
+    flex-direction: column;
+  }
+  
+  .login-left {
+    min-height: 40vh;
+  }
+  
+  .login-right {
+    min-height: 60vh;
+  }
+}
+
