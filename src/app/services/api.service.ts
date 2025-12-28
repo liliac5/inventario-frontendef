@@ -126,14 +126,39 @@ getSolicitudesDocente(idDocente: number) {
   }
 
   // Métodos para Solicitudes
-  getSolicitudes(): Observable<Solicitud[]> {
-    return of([]).pipe(delay(300));
-  }
+ getSolicitudes(): Observable<Solicitud[]> {
+  return this.http.get<Solicitud[]>(
+    `${this.baseUrl}/solicitudes`,
+    { headers: this.getHeaders() }
+  );
+}
+
+   //solicitudes denegar o aprobar
+   aprobarSolicitud(id: number) {
+  return this.http.put<Solicitud>(
+    `${this.baseUrl}/solicitudes/${id}/aprobar`,
+    {}
+  );
+}
+
+denegarSolicitud(id: number) {
+  return this.http.put<Solicitud>(
+    `${this.baseUrl}/solicitudes/${id}/denegar`,
+    {}
+  );
+}
+
 
   
-  updateSolicitud(solicitud: Solicitud): Observable<Solicitud> {
-    return of(solicitud).pipe(delay(300));
-  }
+ updateSolicitud(solicitud: Solicitud): Observable<Solicitud> {
+  return this.http.put<Solicitud>(
+    `${this.baseUrl}/solicitudes/${solicitud.idSolicitud}`,
+    {
+      estado: solicitud.estado
+    },
+    { headers: this.getHeaders() }
+  );
+}
 
   // Métodos para Notificaciones
   getNotificaciones(): Observable<Notificacion[]> {

@@ -79,7 +79,7 @@ export class SolicitudesCambioComponent implements OnInit {
 
     const solicitudActualizada: Solicitud = {
       ...this.solicitudToProcess,
-      estado: this.confirmAction === 'aceptar' ? 'Aceptada' : 'Rechazada'
+      estado: this.confirmAction === 'aceptar' ? 'APROBADA' : 'DENEGADA'
     };
 
     this.apiService.updateSolicitud(solicitudActualizada).subscribe({

@@ -20,7 +20,6 @@ export class PortalDocenteComponent implements OnInit {
   aulaSeleccionada: number | null = null;
   tipoSolicitud: string = '';
   detalleProblema?: string ;
-bienSeleccionado: number | null = null;
 
   // Datos
   bienes: Bien[] = [];
@@ -33,9 +32,8 @@ bienSeleccionado: number | null = null;
     'Infraestructura (paredes, luz, aire acondicionado)',
     'Otros (Limpieza, seguridad, etc.)'
   ];
-  bienesAsignados: Bien[] = [];
+  bienSeleccionado: number | null = null;
 
-  
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
@@ -44,39 +42,42 @@ bienSeleccionado: number | null = null;
 
  ngOnInit(): void {
   const user = this.authService.getCurrentUser();
+  console.log('👤 USER:', user);
+
   if (user) {
     this.currentUser = user.nombre;
     this.currentUserId = user.idUsuario;
-    this.loadAsignaciones(); // Esto iniciará la cadena: asignaciones -> bienes -> aulas
+
+    console.log('🟢 ID DOCENTE:', this.currentUserId);
+
+    this.loadAsignaciones(); // ⬅️ aquí empieza todo
   }
 }
 
-onAulaChange(): void {
-  if (this.aulaSeleccionada) {
-    this.bienesAsignados = this.bienes.filter(
-      b => b.aula && b.aula.idAula === this.aulaSeleccionada
-    );
-  } else {
-    this.bienesAsignados = [];
-  }
-  this.bienSeleccionado = null;
-}
+
+
 
 loadAsignaciones(): void {
-  this.apiService.getAsignaciones().subscribe((asignaciones: Asignacion[]) => {
-    this.asignaciones = asignaciones.filter(a => a.usuario.idUsuario === this.currentUserId && a.estado);
-    this.loadBienes(); // cargamos bienes primero
+  this.apiService.getAsignaciones().subscribe(asignaciones => {
+    this.asignaciones = asignaciones.filter(
+      a => a.usuario.idUsuario === this.currentUserId && a.estado
+    );
+
+    this.loadBienes(); // ⬅️ sigue el flujo
   });
 }
 
+
 loadBienes(): void {
   this.apiService.getBienes().subscribe({
-    next: (bienes: Bien[]) => {
+    next: bienes => {
       this.bienes = bienes;
       this.loadAulas();
-      this.loadMisSolicitudes(); // ahora ya tenemos los bienes
+
+      // ✅ AQUÍ SÍ, porque el ID YA EXISTE
+      this.loadMisSolicitudes();
     },
-    error: (err) => console.error('Error cargando bienes:', err)
+    error: err => console.error(err)
   });
 }
 
@@ -87,73 +88,92 @@ loadAulas(): void {
   this.aulasAsignadas = [];
 
   this.bienes.forEach(b => {
-    const aula = b.aula;
-    if (aula && !this.aulasAsignadas.some(a => a.idAula === aula.idAula)) {
-      this.aulasAsignadas.push(aula);
+    if (b.aula && !this.aulasAsignadas.some(a => a.idAula === b.aula.idAula)) {
+      this.aulasAsignadas.push(b.aula);
     }
   });
 
+  // seleccionar primera aula por defecto
   if (this.aulasAsignadas.length > 0) {
     this.aulaSeleccionada = this.aulasAsignadas[0].idAula;
-    this.onAulaChange(); // actualizar bienes asignados
   }
 }
-
-
 
 
 
 
 loadMisSolicitudes(): void {
+  console.log('🟢 loadMisSolicitudes llamado con ID:', this.currentUserId);
+
   this.apiService.getSolicitudesDocente(this.currentUserId).subscribe({
-    next: (solicitudes: Solicitud[]) => {
+    next: (solicitudes: any[]) => {
+      console.log('🟢 RESPUESTA BACKEND:', solicitudes);
       this.misSolicitudes = solicitudes;
     },
-    error: (err) => console.error('Error cargando solicitudes:', err)
+    error: err => console.error('🔴 ERROR API:', err)
   });
 }
 
 
- getBienesAsignados(): Bien[] {
+
+
+
+onAulaChange(): void {
+  // limpiar bien seleccionado cuando cambia el aula
+  this.bienSeleccionado = null;
+}
+
+getBienesAsignados(): Bien[] {
+  console.log(this.bienes);
   return this.bienes.filter(b => b.aula?.idAula === this.aulaSeleccionada);
 }
 
 
+
 enviarSolicitud(): void {
-  if (!this.bienSeleccionado || !this.tipoSolicitud || !this.detalleProblema) {
+  // Validar que todos los campos estén completos
+  if (!this.aulaSeleccionada || !this.tipoSolicitud || !this.detalleProblema) {
     alert('Por favor complete todos los campos');
     return;
   }
 
-  const bienRelacionado = this.bienes.find(b => b.idBien === this.bienSeleccionado);
+  // Buscar un bien relacionado con el aula seleccionada
+  const bienRelacionado = this.getBienesAsignados().find(
+    b => b.aula?.idAula === this.aulaSeleccionada
+  );
+
   if (!bienRelacionado) {
-    alert('No se encontró el bien seleccionado');
+    alert('No se encontró un bien para el aula seleccionada');
     return;
   }
 
+  // Construir objeto a enviar al backend
   const body = {
     idBien: bienRelacionado.idBien,
     descripcion: `${this.tipoSolicitud}: ${this.detalleProblema}`,
     estado: 'PENDIENTE'
   };
 
+  // Llamar al API para crear la solicitud
   this.apiService.createSolicitud(body).subscribe({
     next: (res) => {
+      // Agregar el bien al objeto recibido para mostrar correctamente en el front
       (res as any).bien = bienRelacionado;
-      this.misSolicitudes.unshift(res);
+
       alert('Solicitud enviada correctamente');
+          this.loadMisSolicitudes();
 
       // Limpiar formulario
       this.detalleProblema = '';
       this.tipoSolicitud = '';
-      this.bienSeleccionado = null;
+      this.aulaSeleccionada = this.aulasAsignadas.length > 0 ? this.aulasAsignadas[0].idAula : null;
     },
     error: (err) => {
       console.error('Error al enviar la solicitud:', err);
       alert('Error al enviar la solicitud');
     }
   });
-}
-}
-
+  
+  
+}}
 

@@ -23,23 +23,28 @@
         <form (ngSubmit)="enviarSolicitud()">
           <div class="form-group">
   <label for="aula">Aula</label>
- <select id="aula" [(ngModel)]="aulaSeleccionada" name="aula" required>
+<select
+  id="aula"
+  [(ngModel)]="aulaSeleccionada"
+  name="aula"
+  required
+  (ngModelChange)="onAulaChange()"
+>
   <option *ngFor="let aula of aulasAsignadas" [ngValue]="aula.idAula">
     {{ aula.nombre }}
   </option>
 </select>
-</div>
 
+</div>
 <div class="form-group">
   <label for="bien">Bien</label>
- <select id="bien" [(ngModel)]="bienSeleccionado" name="bien" required>
-  <option *ngFor="let bien of bienesAsignados" [ngValue]="bien.idBien">
-    {{ bien.nombre_bien }} - {{ bien.aula?.nombre || 'N/A' }}
-  </option>
-</select>
+  <select id="bien" [(ngModel)]="bienSeleccionado" name="bien" required>
+   <option *ngFor="let bien of getBienesAsignados()" [ngValue]="bien.idBien">
+  {{ bien.nombre_bien }} ({{ bien.aula.nombre }})
+</option>
 
+  </select>
 </div>
-
 
           <div class="form-group">
             <label for="tipo">Tipo de Solicitud</label>
@@ -97,7 +102,9 @@
      <td>{{ solicitud.bien?.aula?.nombre || 'N/A' }}</td>
 <td>{{ solicitud.descripcion.split(':')[0] }}</td>
 <td>{{ solicitud.descripcion.split(':').slice(1).join(':') }}</td>
+
 <td><span class="estado-badge pendiente">{{ solicitud.estado }}</span></td>
+
             </tr>
               <tr *ngIf="misSolicitudes.length === 0">
                 <td colspan="4" class="no-data">No hay solicitudes registradas</td>
