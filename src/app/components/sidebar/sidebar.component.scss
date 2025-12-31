@@ -247,7 +247,7 @@
 @keyframes modalSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(30px) scale(0.9);
   }
   to {
     opacity: 1;
@@ -255,16 +255,20 @@
   }
 }
 
+
 .modal-icon-wrapper {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  align-items: center;
+  margin-bottom: 22px;
 }
+
+
 
 .logout-modal-icon {
   color: #f44336;
   width: 64px;
-  height: 64px;
+  height: 80px;
 }
 
 .modal-title-logout {

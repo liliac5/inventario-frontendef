@@ -6,6 +6,7 @@ import { Aula } from '../../models/aula.model';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { BienesService } from '../../services/bienes.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-portal-docente',
@@ -20,6 +21,10 @@ export class PortalDocenteComponent implements OnInit {
   aulaSeleccionada: number | null = null;
   tipoSolicitud: string = '';
   detalleProblema?: string ;
+
+  showToast: boolean = false;
+toastMessage: string = '';
+toastType: 'success' | 'error' = 'success';
 
   // Datos
   bienes: Bien[] = [];
@@ -58,7 +63,19 @@ export class PortalDocenteComponent implements OnInit {
     console.warn('⚠️ No hay usuario autenticado');
   }
 }
+showToastMessage(message: string, type: 'success' | 'error' = 'success') {
+  this.toastMessage = message;
+  this.toastType = type;
+  this.showToast = true;
 
+  setTimeout(() => {
+    this.showToast = false;
+  }, 3000); // 3 segundos
+}
+
+closeToast() {
+  this.showToast = false;
+}
 obtenerIdUsuarioPorEmail(email: string): void {
   this.apiService.getUsuarios().subscribe({
     next: (usuarios) => {
@@ -303,7 +320,12 @@ getDetalleSolicitud(solicitud: Solicitud): string {
 enviarSolicitud(): void {
   // Validar que todos los campos estén completos
   if (!this.aulaSeleccionada || !this.bienSeleccionado || !this.tipoSolicitud || !this.detalleProblema) {
-    alert('Por favor complete todos los campos');
+    Swal.fire({
+      icon: 'error',
+      title: 'Campos incompletos',
+      text: 'Por favor complete todos los campos',
+      confirmButtonColor: '#3085d6'
+    });
     return;
   }
 
@@ -311,7 +333,12 @@ enviarSolicitud(): void {
   const bienRelacionado = this.bienes.find(b => b.idBien === this.bienSeleccionado);
 
   if (!bienRelacionado) {
-    alert('No se encontró el bien seleccionado');
+    Swal.fire({
+      icon: 'error',
+      title: 'Bien no encontrado',
+      text: 'No se encontró el bien seleccionado',
+      confirmButtonColor: '#3085d6'
+    });
     return;
   }
 
@@ -325,10 +352,18 @@ enviarSolicitud(): void {
   // Llamar al API para crear la solicitud
   this.apiService.createSolicitud(body).subscribe({
     next: (res) => {
-      // Agregar el bien al objeto recibido para mostrar correctamente en el front
       (res as any).bien = bienRelacionado;
 
-      alert('Solicitud enviada correctamente');
+      Swal.fire({
+        icon: 'success',
+        title: 'Solicitud enviada',
+        text: 'La solicitud se ha enviado correctamente',
+        confirmButtonColor: '#3085d6',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
+
       this.loadMisSolicitudes();
 
       // Limpiar formulario
@@ -342,7 +377,12 @@ enviarSolicitud(): void {
     },
     error: (err) => {
       console.error('Error al enviar la solicitud:', err);
-      alert('Error al enviar la solicitud');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo enviar la solicitud',
+        confirmButtonColor: '#3085d6'
+      });
     }
   });
 }

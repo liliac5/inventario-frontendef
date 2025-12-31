@@ -1,4 +1,4 @@
-<div class="asignacion-container">
+<div class="page-container asignacion-container">
   <app-sidebar></app-sidebar>
 
   <div class="main-content">
@@ -45,8 +45,12 @@
               <label>Fecha de Solicitud</label>
               <input 
                 type="date" 
-                [(ngModel)]="fechaSolicitud"
-                class="form-input">
+                [(ngModel)]="nuevaFecha"
+                class="form-input"
+                  [min]="fechaHoy"
+
+                [max]="fechaHoy"
+  required>
             </div>
           </div>
         </div>
@@ -58,6 +62,24 @@
           Registrar Asignación
         </button>
       </div>
+<!-- ALERTA MODERNA -->
+<div class="alert-overlay" *ngIf="mostrarAlerta">
+  <div class="alert-box" [ngClass]="tipoAlerta">
+
+    <div class="alert-icon">
+      {{ tipoAlerta === 'success' ? '✓' : '!' }}
+    </div>
+
+    <h3>{{ tituloAlerta }}</h3>
+    <p>{{ mensajeAlerta }}</p>
+
+    <button class="btn-alert" (click)="mostrarAlerta = false">
+      Entendido
+    </button>
+
+  </div>
+</div>
+
 
       <!-- Lista de Asignaciones -->
       <div class="asignaciones-list" *ngIf="asignaciones.length > 0">

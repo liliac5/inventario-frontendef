@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Solicitud } from '../../models/solicitud.model';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
+
 
 @Component({
   selector: 'app-solicitudes-cambio',
@@ -74,35 +76,43 @@ export class SolicitudesCambioComponent implements OnInit {
     this.solicitudToProcess = null;
   }
 
-  confirmActionExecute(): void {
-    if (!this.solicitudToProcess || !this.confirmAction) return;
+confirmActionExecute(): void {
+  if (!this.solicitudToProcess || !this.confirmAction) return;
 
-    const solicitudActualizada: Solicitud = {
-      ...this.solicitudToProcess,
-      estado: this.confirmAction === 'aceptar' ? 'APROBADA' : 'DENEGADA'
-    };
+  const solicitudActualizada: Solicitud = {
+    ...this.solicitudToProcess,
+    estado: this.confirmAction === 'aceptar' ? 'APROBADA' : 'DENEGADA'
+  };
 
-    this.apiService.updateSolicitud(solicitudActualizada).subscribe({
-      next: (solicitud) => {
-        const index = this.solicitudes.findIndex(s => s.idSolicitud === solicitud.idSolicitud);
-        if (index > -1) {
-          this.solicitudes[index] = solicitud;
-          this.filteredSolicitudes = [...this.solicitudes];
-          this.showSuccessMessage(
-            this.confirmAction === 'aceptar' 
-              ? 'Solicitud aceptada exitosamente' 
-              : 'Solicitud rechazada'
-          );
-        }
-        this.closeDetailModal();
-        this.closeConfirmModal();
-      },
-      error: (error) => {
-        console.error('Error actualizando solicitud:', error);
-        alert('Error al procesar la solicitud. Por favor, intente nuevamente.');
+  this.apiService.updateSolicitud(solicitudActualizada).subscribe({
+    next: (solicitud) => {
+      const index = this.solicitudes.findIndex(s => s.idSolicitud === solicitud.idSolicitud);
+      if (index > -1) {
+        this.solicitudes[index] = solicitud;
+        this.filteredSolicitudes = [...this.solicitudes];
+
+        // Mensaje animado con SweetAlert2
+        this.showSuccessMessage(
+          this.confirmAction === 'aceptar' 
+            ? 'Solicitud aceptada exitosamente' 
+            : 'Solicitud rechazada'
+        );
       }
-    });
-  }
+      this.closeDetailModal();
+      this.closeConfirmModal();
+    },
+    error: (error) => {
+      console.error('Error actualizando solicitud:', error);
+      Swal.fire({
+        title: '¡Error!',
+        text: 'No se pudo procesar la solicitud. Intente nuevamente.',
+        icon: 'error',
+        confirmButtonText: 'Cerrar'
+      });
+    }
+  });
+}
+
 
   aceptarSolicitud(solicitud: Solicitud): void {
     this.openConfirmModal(solicitud, 'aceptar');
@@ -123,18 +133,51 @@ export class SolicitudesCambioComponent implements OnInit {
   showSuccessToast: boolean = false;
   successMessage: string = '';
 
-  showSuccessMessage(message: string): void {
-    this.successMessage = message;
-    this.showSuccessToast = true;
-    setTimeout(() => {
-      this.showSuccessToast = false;
-      this.successMessage = '';
-    }, 3000);
-  }
+
+
+showSuccessMessage(message: string): void {
+  Swal.fire({
+    title: '¡Éxito!',
+    text: message,
+    icon: 'success',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+    showClass: { popup: 'animate__animated animate__fadeInDown' },
+    hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+  });
+}
 
   closeSuccessMessage(): void {
     this.showSuccessToast = false;
     this.successMessage = '';
   }
+  accionConAnimacion(solicitud: Solicitud, accion: 'aceptar' | 'rechazar') {
+  const esAceptar = accion === 'aceptar';
+
+  Swal.fire({
+    title: esAceptar ? '¿Aceptar solicitud?' : '¿Rechazar solicitud?',
+    text: `Solicitud #${solicitud.idSolicitud}`,
+    icon: esAceptar ? 'question' : 'warning',
+    showCancelButton: true,
+    confirmButtonText: esAceptar ? 'Sí, aceptar' : 'Sí, rechazar',
+    cancelButtonText: 'Cancelar',
+    reverseButtons: true,
+    confirmButtonColor: esAceptar ? '#4caf50' : '#f44336',
+    cancelButtonColor: '#9e9e9e',
+    showClass: { popup: 'animate__animated animate__zoomIn' },
+    hideClass: { popup: 'animate__animated animate__zoomOut' }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Llamamos a tus funciones existentes que procesan la solicitud
+      if (esAceptar) {
+        this.aceptarDesdeTabla(solicitud);
+      } else {
+        this.rechazarDesdeTabla(solicitud);
+      }
+    }
+  });
 }
 
+  
+}

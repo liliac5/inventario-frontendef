@@ -4,6 +4,7 @@ import { Aula } from '../../models/aula.model';
 import { Usuario } from '../../models/usuario.model';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-asignacion-aula',
@@ -16,12 +17,15 @@ export class AsignacionAulaComponent implements OnInit {
   
   // Listas
   aulas: Aula[] = [];
+  fechaHoy: string = '';
+
   usuarios: Usuario[] = [];
   asignaciones: Asignacion[] = [];
  // Modal editar
 showEditModal = false;
 asignacionEditando: Asignacion | null = null;
-
+mostrarAlerta = false;
+mensajeAlerta = '';
   // Formulario
   selectedUsuarioId: number = 0;
   selectedAulaId: number = 0;
@@ -32,6 +36,8 @@ nuevaFecha: string = new Date().toISOString().split('T')[0];
 editUsuarioId: number = 0;
 editAulaId: number = 0;
 editFecha: string = '';
+tituloAlerta = '';
+tipoAlerta: 'error' | 'success' = 'error';
 
   constructor(
     private apiService: ApiService,
@@ -48,6 +54,12 @@ editFecha: string = '';
     this.loadAulas();
     this.loadUsuarios();
     this.loadAsignaciones();
+  const hoy = new Date();
+  const year = hoy.getFullYear();
+  const month = String(hoy.getMonth() + 1).padStart(2, '0');
+  const day = String(hoy.getDate()).padStart(2, '0');
+
+  this.fechaHoy = `${year}-${month}-${day}`;
   }
 
   loadAulas(): void {
@@ -82,25 +94,59 @@ editFecha: string = '';
       }
     });
   }
+mostrarMensaje(titulo: string, mensaje: string, tipo: 'error' | 'success') {
+  this.tituloAlerta = titulo;
+  this.mensajeAlerta = mensaje;
+  this.tipoAlerta = tipo;
+  this.mostrarAlerta = true;
+}
 
 registrarAsignacion(): void {
-  if (this.nuevoUsuarioId === null || this.nuevaAulaId === null) {
-    alert('Por favor seleccione un usuario y un aula');
+
+  if (!this.nuevoUsuarioId || !this.nuevaAulaId || !this.nuevaFecha) {
+    Swal.fire(
+      'Campos incompletos',
+      'Debe seleccionar un usuario, un aula y una fecha.',
+      'warning'
+    );
     return;
   }
 
+if (this.nuevaFecha !== this.fechaHoy) {
+  Swal.fire(
+    'Fecha inválida',
+    'Solo se permite la fecha del día de hoy.',
+    'error'
+  );
+  return;
+}
+
+
   const body = {
+    idUsuario: this.nuevoUsuarioId,
     idAula: this.nuevaAulaId,
-    idUsuario: this.nuevoUsuarioId
+    fechaSolicitud: this.nuevaFecha
   };
 
   this.apiService.createAsignacion(body).subscribe({
     next: (asignacionCreada) => {
       this.asignaciones.push(asignacionCreada);
-      alert('Asignación registrada exitosamente');
+
+      Swal.fire(
+        'Asignación registrada',
+        'La asignación se registró correctamente.',
+        'success'
+      );
+
       this.resetForm();
     },
-    error: () => alert('Error al guardar la asignación')
+    error: () => {
+      Swal.fire(
+        'Error',
+        'No se pudo registrar la asignación.',
+        'error'
+      );
+    }
   });
 }
 
@@ -108,7 +154,7 @@ registrarAsignacion(): void {
  resetForm(): void {
   this.nuevoUsuarioId = null;
   this.nuevaAulaId = null;
-  this.nuevaFecha = new Date().toISOString().split('T')[0];
+  this.nuevaFecha = this.fechaHoy;
 }
 
 
@@ -192,18 +238,53 @@ closeEditModal(): void {
 
 
 eliminarAsignacion(id: number): void {
-  if (!confirm('¿Seguro que deseas eliminar esta asignación?')) return;
+  Swal.fire({
+    title: '¿Eliminar asignación?',
+    text: 'Esta acción no se puede deshacer.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#c62828',
+    cancelButtonColor: '#9e9e9e',
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.apiService.deleteAsignacion(id).subscribe({
+        next: () => {
+          this.asignaciones = this.asignaciones.filter(
+            a => a.idAsignacion !== id
+          );
 
-  this.apiService.deleteAsignacion(id).subscribe({
-    next: () => {
-      this.asignaciones = this.asignaciones.filter(a => a.idAsignacion !== id);
-      alert('Asignación eliminada');
-    },
-    error: () => alert('Error al eliminar la asignación')
+          Swal.fire(
+            'Eliminada',
+            'La asignación fue eliminada correctamente.',
+            'success'
+          );
+        },
+        error: () => {
+          Swal.fire(
+            'Error',
+            'No se pudo eliminar la asignación.',
+            'error'
+          );
+        }
+      });
+    }
   });
 }
+
 updateAsignacion(): void {
   if (!this.asignacionEditando) return;
+
+  if (!this.editUsuarioId || !this.editAulaId) {
+    Swal.fire(
+      'Campos incompletos',
+      'Debe seleccionar un usuario y un aula.',
+      'warning'
+    );
+    return;
+  }
 
   const body = {
     idUsuario: this.editUsuarioId,
@@ -215,18 +296,31 @@ updateAsignacion(): void {
     .updateAsignacion(this.asignacionEditando.idAsignacion!, body)
     .subscribe({
       next: (res) => {
-        const i = this.asignaciones.findIndex(
+        const index = this.asignaciones.findIndex(
           a => a.idAsignacion === res.idAsignacion
         );
-        if (i !== -1) this.asignaciones[i] = res;
 
-        alert('Asignación actualizada');
+        if (index !== -1) {
+          this.asignaciones[index] = res;
+        }
+
+        Swal.fire(
+          'Asignación actualizada',
+          'Los datos se actualizaron correctamente.',
+          'success'
+        );
+
         this.closeEditModal();
       },
-      error: () => alert('Error al actualizar')
+      error: () => {
+        Swal.fire(
+          'Error',
+          'No se pudo actualizar la asignación.',
+          'error'
+        );
+      }
     });
 }
-
 
 
 

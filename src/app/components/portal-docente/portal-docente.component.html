@@ -113,11 +113,14 @@
                 <td>{{ solicitud.bien?.aula?.nombre || 'N/A' }}</td>
                 <td>{{ getTipoSolicitud(solicitud) }}</td>
                 <td>{{ getDetalleSolicitud(solicitud) }}</td>
-                <td>
-                  <span [class]="'estado-badge ' + (solicitud.estado ? solicitud.estado.toLowerCase() : 'pendiente')">
-                    {{ solicitud.estado || 'PENDIENTE' }}
-                  </span>
-                </td>
+<td>
+  <span 
+    [class]="'estado-badge ' + (solicitud.estado ? solicitud.estado.toLowerCase() : 'pendiente')"
+    [class.aprobada]="solicitud.estado === 'APROBADA'">
+    {{ solicitud.estado || 'PENDIENTE' }}
+  </span>
+</td>
+
               </tr>
               <tr *ngIf="misSolicitudes.length === 0">
                 <td colspan="4" class="no-data">No hay solicitudes registradas</td>
@@ -128,5 +131,13 @@
       </div>
     </div>
   </div>
+</div>
+<!-- Toast de éxito / error -->
+<div class="toast-message" 
+     [class.show]="showToast" 
+     [class.success]="toastType === 'success'" 
+     [class.error]="toastType === 'error'">
+  {{ toastMessage }}
+  <button class="close-toast" (click)="closeToast()">×</button>
 </div>
 

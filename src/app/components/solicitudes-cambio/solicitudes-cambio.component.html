@@ -40,7 +40,7 @@
               <!-- Docente / Aula -->
               <td>
                 <div class="docente-aula-cell">
-                  <div class="docente">Docente: {{ solicitud.docente?.nombre || 'N/A' }}</div>
+                  <div class="docente">Docente: {{ solicitud.usuario?.nombre || 'N/A' }}</div>
                   <div class="aula">Aula: {{ solicitud.bien?.aula?.nombre || 'N/A' }}</div>
                 </div>
               </td>
@@ -58,23 +58,24 @@
               <td>{{ solicitud.fecha ? (solicitud.fecha | date:'dd/MM/yyyy') : 'N/A' }}</td>
 
               <!-- Acciones -->
-              <td>
-                <div class="acciones-cell">
-                  <button
-                    class="btn-aceptar"
-                    *ngIf="solicitud.estado === 'PENDIENTE'"
-                    (click)="aceptarDesdeTabla(solicitud)">
-                    Aceptar
-                  </button>
+<td>
+  <div class="acciones-cell">
+    <button
+      class="btn-aceptar"
+      *ngIf="solicitud.estado === 'PENDIENTE'"
+      (click)="accionConAnimacion(solicitud, 'aceptar')">
+      Aceptar
+    </button>
 
-                  <button
-                    class="btn-rechazar"
-                    *ngIf="solicitud.estado === 'PENDIENTE'"
-                    (click)="rechazarDesdeTabla(solicitud)">
-                    Rechazar
-                  </button>
-                </div>
-              </td>
+    <button
+      class="btn-rechazar"
+      *ngIf="solicitud.estado === 'PENDIENTE'"
+      (click)="accionConAnimacion(solicitud, 'rechazar')">
+      Rechazar
+    </button>
+  </div>
+</td>
+
             </tr>
 
             <tr *ngIf="filteredSolicitudes.length === 0">
