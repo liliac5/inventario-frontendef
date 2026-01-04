@@ -29,10 +29,6 @@ export class SolicitudesCambioComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.currentUser = user.nombre;
-    }
     this.loadSolicitudes();
   }
 

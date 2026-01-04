@@ -251,8 +251,9 @@
       <!-- Custodio -->
       <div class="form-field">
         <label>Custodio</label>
-        <input type="text" [(ngModel)]="nuevoBien.custodio"
-               name="custodio" placeholder="Juan Pérez" required>
+        <input  type="text"
+    [value]="usuarioAulaSeleccionada"
+    readonly>
       </div>
 
       <!-- Ubicación -->
@@ -290,24 +291,35 @@
       <!-- Categoría -->
       <div class="form-field">
         <label>Categoría</label>
-        <select [(ngModel)]="nuevoBien.idCategoria" name="categoria" required>
-          <option [ngValue]="null">Seleccione una categoría</option>
-          <option *ngFor="let c of categorias" [ngValue]="c.id_categoria">
-            {{ c.nombre }}
-          </option>
-        </select>
+     <select
+  [(ngModel)]="nuevoBien.categoria.idCategoria"
+  name="categoria"
+  required
+>
+  <option [ngValue]="null">Seleccione una categoría</option>
+  <option *ngFor="let c of categorias" [ngValue]="c.idCategoria">
+    {{ c.nombre }}
+  </option>
+</select>
       </div>
 
       <!-- Aula -->
-      <div class="form-field">
-        <label>Aula</label>
-        <select [(ngModel)]="nuevoBien.idAula" name="idAula">
-          <option [ngValue]="null">Seleccione un aula</option>
-          <option *ngFor="let aula of aulas" [ngValue]="aula.idAula">
-            {{ aula.nombre }} - {{ aula.ubicacion }}
-          </option>
-        </select>
-      </div>
+<div class="form-field">
+  <label>Aula (solo asignadas)</label>
+  <select
+    [(ngModel)]="nuevoBien.aula.idAula"
+    name="idAula"
+    (change)="onAulaSeleccionada(nuevoBien.aula.idAula)"
+  >
+    <option [ngValue]="null">Seleccione un aula</option>
+
+    <option
+      *ngFor="let a of aulasAsignadas"
+      [ngValue]="a.idAula">
+      {{ a.nombreAula }}
+    </option>
+  </select>
+</div>
 
       <div class="modal-actions full-width">
         <button type="submit" class="btn-save">Guardar</button>
@@ -424,8 +436,9 @@
 
       <div class="form-field">
         <label>Custodio</label>
-        <input type="text" [(ngModel)]="selectedBien.custodio"
-               name="custodioEdit">
+        <input    type="text"
+    [value]="usuarioAulaSeleccionada"
+    readonly>
       </div>
 
       <div class="form-field">
@@ -446,10 +459,14 @@
   <label>Aula</label>
  <select
   [(ngModel)]="selectedBien.aula.idAula"
-  name="aulaEdit">
+  name="aulaEdit"
+  (change)="onAulaSeleccionada(selectedBien.aula.idAula)"
+>
   <option [ngValue]="null">Seleccione aula</option>
-  <option *ngFor="let a of aulas" [ngValue]="a.idAula">
-    {{ a.nombre }}
+
+  <option *ngFor="let a of aulasAsignadas"
+          [ngValue]="a.idAula">
+    {{ a.nombreAula }}
   </option>
 </select>
 </div>

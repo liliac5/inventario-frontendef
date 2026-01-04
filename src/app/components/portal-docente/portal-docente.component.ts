@@ -282,7 +282,7 @@ getBienesAsignados(): Bien[] {
   const bienesFiltrados = this.bienes.filter(b => {
     // Verificar si el bien tiene aula y coincide con la seleccionada
     if (!b.aula || !b.aula.idAula) {
-      console.log(`⚠️ Bien ${b.idBien} (${b.nombre_bien}) no tiene aula asignada`);
+      console.log(`⚠️ Bien ${b.idBien} (${b.nombreBien}) no tiene aula asignada`);
       return false;
     }
     
@@ -291,7 +291,7 @@ getBienesAsignados(): Bien[] {
   });
   
   console.log(`✅ Bienes para aula ${this.aulaSeleccionada}:`, bienesFiltrados.length);
-  console.log('📋 Bienes filtrados:', bienesFiltrados.map(b => `${b.nombre_bien} (Aula: ${b.aula?.nombre || 'N/A'})`));
+  console.log('📋 Bienes filtrados:', bienesFiltrados.map(b => `${b.nombreBien} (Aula: ${b.aula?.nombre || 'N/A'})`));
   
   return bienesFiltrados;
 }

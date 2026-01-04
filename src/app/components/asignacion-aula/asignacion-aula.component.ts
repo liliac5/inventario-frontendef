@@ -172,13 +172,36 @@ if (this.nuevaFecha !== this.fechaHoy) {
 
 getAulasDisponibles(): Aula[] {
   const aulasAsignadas = this.asignaciones
-    .filter(a => a.estado)
-    .map(a => a.id_aula);
+    .filter(a => a.estado === true)
+    .map(a => a.aula.idAula);
 
   return this.aulas.filter(
-    a => !aulasAsignadas.includes(a.idAula) && a.estado
+    aula => !aulasAsignadas.includes(aula.idAula) && aula.estado === true
   );
 }
+getAulasDisponiblesParaEditar(): Aula[] {
+  if (!this.asignacionEditando) return [];
+
+  const idAulaActual = this.asignacionEditando.aula.idAula;
+
+  const aulasAsignadas = this.asignaciones
+    .filter(a =>
+      a.estado === true &&
+      a.aula.idAula !== idAulaActual
+    )
+    .map(a => a.aula.idAula);
+
+  return this.aulas.filter(
+    aula =>
+      aula.estado === true &&
+      (
+        aula.idAula === idAulaActual ||
+        !aulasAsignadas.includes(aula.idAula)
+      )
+  );
+}
+
+
 
 toggleEstadoAsignacion(asignacion: Asignacion): void {
   const body = {

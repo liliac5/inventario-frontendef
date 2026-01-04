@@ -42,7 +42,7 @@
             </div>
 
             <div class="form-field">
-              <label>Fecha de Solicitud</label>
+              <label>Fecha de asignacion</label>
               <input 
                 type="date" 
                 [(ngModel)]="nuevaFecha"
@@ -90,7 +90,7 @@
               <tr>
                 <th>Usuario</th>
                 <th>Aula</th>
-                <th>Fecha Solicitud</th>
+                <th>Fecha asignacion</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -147,15 +147,16 @@
       </select>
     </div>
 
-    <div class="form-field">
-      <label>Aula</label>
-      <select [(ngModel)]="editAulaId">
-        <option *ngFor="let aula of aulas"
-                [value]="aula.idAula">
-          {{ aula.nombre }} - {{ aula.ubicacion }}
-        </option>
-      </select>
-    </div>
+<div class="form-field">
+  <label>Aula</label>
+  <select [(ngModel)]="editAulaId">
+    <option *ngFor="let aula of getAulasDisponiblesParaEditar()"
+            [value]="aula.idAula">
+      {{ aula.nombre }} - {{ aula.ubicacion }}
+    </option>
+  </select>
+</div>
+
 
     <div class="form-field">
       <label>Fecha</label>

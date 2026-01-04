@@ -18,7 +18,7 @@
           <input 
             type="text" 
             class="search-input" 
-            placeholder="Buscar..."
+            placeholder="Buscar por nombre..."
             [(ngModel)]="searchTerm"
             (input)="onSearch()">
         </div>
@@ -63,12 +63,6 @@
               </td>
               <td>
                 <div class="action-buttons">
-                  <button class="action-btn block-btn" (click)="toggleEstado(usuario)" [title]="usuario.estado ? 'Desactivar' : 'Activar'">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                      <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none"/>
-                      <line x1="6" y1="6" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                  </button>
                   <button class="action-btn delete-btn" (click)="deleteUsuario(usuario)" title="Eliminar">
                     <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                       <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -104,67 +98,122 @@
     <button class="close-btn" (click)="closeAddModal()">×</button>
     <h2 class="modal-title">Crear Usuario</h2>
     
-    <form class="modal-form" (ngSubmit)="saveUsuario()">
+    <form class="modal-form"
+          #formUsuario="ngForm"
+          (ngSubmit)="saveUsuario()">
+
       <div class="form-fields">
+
+        <!-- NOMBRE -->
         <div class="form-field">
           <label>Nombre Completo *</label>
-          <input type="text" [(ngModel)]="nuevoUsuario.nombre" name="nombre" placeholder="Nombre del usuario" required>
+          <input type="text"
+                 name="nombre"
+                 [(ngModel)]="nuevoUsuario.nombre"
+                 placeholder="Nombre del usuario"
+                 required
+                 minlength="3"
+                 pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$"
+                 #nombre="ngModel">
+
+          <small class="error" *ngIf="nombre.invalid && nombre.touched">
+            <span *ngIf="nombre.errors?.['required']">El nombre es obligatorio.</span>
+            <span *ngIf="nombre.errors?.['minlength']">Mínimo 3 caracteres.</span>
+            <span *ngIf="nombre.errors?.['pattern']">Solo letras y espacios.</span>
+          </small>
         </div>
+
+        <!-- EMAIL -->
         <div class="form-field">
           <label>Email *</label>
-          <input type="email" [(ngModel)]="nuevoUsuario.email" name="email" placeholder="usuario@ejemplo.com" required>
+          <input type="email"
+                 name="email"
+                 [(ngModel)]="nuevoUsuario.email"
+                 placeholder="usuario@ejemplo.com"
+                 required
+                 email
+                 #email="ngModel">
+
+          <small class="error" *ngIf="email.invalid && email.touched">
+            <span *ngIf="email.errors?.['required']">El email es obligatorio.</span>
+            <span *ngIf="email.errors?.['email']">Formato de email inválido.</span>
+          </small>
         </div>
+
+        <!-- CONTRASEÑA -->
         <div class="form-field">
           <label>Contraseña *</label>
           <div class="input-wrapper">
-            <input 
-              [type]="showPassword ? 'text' : 'password'" 
-              [(ngModel)]="passwordTemp" 
-              name="password" 
-              placeholder="Contraseña segura" 
-              required>
-            <button 
-              type="button" 
-              class="eye-icon" 
-              [class.eye-open]="showPassword"
-              [class.eye-closed]="!showPassword"
-              (click)="togglePasswordVisibility()">
-              <!-- Ojo abierto -->
-              <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-svg">
-                <path d="M10 4 C6 4 3 6 1 10 C3 14 6 16 10 16 C14 16 17 14 19 10 C17 6 14 4 10 4 Z" 
-                      stroke="currentColor" stroke-width="1.5" fill="none" class="eye-outline"/>
-                <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none" class="eye-pupil"/>
-                <circle cx="10" cy="10" r="1.5" fill="currentColor" class="eye-center"/>
-              </svg>
-              <!-- Ojo cerrado -->
-              <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-svg">
-                <path d="M10 4 C6 4 3 6 1 10 C3 14 6 16 10 16 C14 16 17 14 19 10 C17 6 14 4 10 4 Z" 
-                      stroke="currentColor" stroke-width="1.5" fill="none" class="eye-outline"/>
-                <line x1="4" y1="6" x2="16" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="eye-line"/>
-              </svg>
+            <input [type]="showPassword ? 'text' : 'password'"
+                   name="password"
+                   [(ngModel)]="passwordTemp"
+                   placeholder="Contraseña segura"
+                   required
+                   minlength="8"
+                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$"
+                   #password="ngModel">
+
+            <button type="button"
+                    class="eye-icon"
+                    (click)="togglePasswordVisibility()">
+              👁
             </button>
           </div>
+
+          <small class="error" *ngIf="password.invalid && password.touched">
+            <span *ngIf="password.errors?.['required']">La contraseña es obligatoria.</span>
+            <span *ngIf="password.errors?.['minlength']">Mínimo 8 caracteres.</span>
+            <span *ngIf="password.errors?.['pattern']">
+              Debe contener mayúscula, minúscula y número.
+            </span>
+          </small>
         </div>
+
+        <!-- ROL -->
         <div class="form-field">
           <label>Rol *</label>
-          <select [(ngModel)]="nuevoUsuario.idRol" name="id_rol" required>
-            <option value="0">Seleccione un rol</option>
-            <option *ngFor="let rol of roles" [value]="rol.idRol">{{ rol.nombre }}</option>
+          <select name="idRol"
+                  [(ngModel)]="nuevoUsuario.idRol"
+                  required
+                  #rol="ngModel">
+            <option [ngValue]="0">Seleccione un rol</option>
+            <option *ngFor="let rol of roles" [ngValue]="rol.idRol">
+              {{ rol.nombre }}
+            </option>
           </select>
+
+          <small class="error" *ngIf="rol.invalid && rol.touched">
+            Debe seleccionar un rol.
+          </small>
         </div>
+
+        <!-- FECHA -->
         <div class="form-field">
           <label>Fecha de Registro</label>
-          <input type="date" [(ngModel)]="nuevoUsuario.fechaRegistro" name="fecha_registro">
+          <input type="date"
+                 name="fechaRegistro"
+                 [(ngModel)]="nuevoUsuario.fechaRegistro"
+                 [max]="today">
         </div>
+
       </div>
       
       <div class="modal-actions">
-        <button type="submit" class="btn-save">Guardar Usuario</button>
-        <button type="button" class="btn-cancel" (click)="closeAddModal()">Cancelar</button>
+        <button type="submit"
+                class="btn-save">
+          Guardar Usuario
+        </button>
+
+        <button type="button"
+                class="btn-cancel"
+                (click)="closeAddModal()">
+          Cancelar
+        </button>
       </div>
     </form>
   </div>
 </div>
+
 <!-- Modal Editar Usuario -->
 <div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">

@@ -3,6 +3,7 @@ import { Usuario } from '../../models/usuario.model';
 import { Rol } from '../../models/rol.model';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-usuarios',
@@ -15,6 +16,7 @@ export class UsuariosComponent implements OnInit {
   searchTerm = '';
   showAddModal = false;
   showEditModal = false;
+  today = new Date().toISOString().split('T')[0];
 
 
   usuarios: Usuario[] = [];
@@ -40,11 +42,6 @@ export class UsuariosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.currentUser = user.nombre;
-    }
-
     this.loadRoles();
     this.loadUsuarios();
   }
@@ -120,66 +117,149 @@ closeEditModal(): void {
     this.showAddModal = false;
   }
 
-  saveUsuario(): void {
-    if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.email || !this.passwordTemp) {
-      return;
-    }
-
-    const usuario: Usuario = {
-      idUsuario: 0,
-      nombre: this.nuevoUsuario.nombre,
-      email: this.nuevoUsuario.email,
-      contraseña: this.passwordTemp,
-      estado: this.nuevoUsuario.estado ?? true,
-      fechaRegistro: this.nuevoUsuario.fechaRegistro!,
-      idRol: this.nuevoUsuario.idRol!
-    };
-
-    this.apiService.createUsuario(usuario).subscribe({
-      next: u => {
-        this.usuarios.push(u);
-        this.filteredUsuarios = [...this.usuarios];
-        this.closeAddModal();
-      },
-      error: err => {
-        console.error(err);
-        alert('Error al crear usuario');
-      }
+saveUsuario(): void {
+  if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.email || !this.passwordTemp || !this.nuevoUsuario.idRol) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Campos incompletos',
+      text: 'Debe completar todos los campos obligatorios',
+      confirmButtonColor: '#ff6f00'
     });
+    return;
   }
 
-  toggleEstado(usuario: Usuario): void {
-  const payload = {
-    nombre: usuario.nombre,
-    email: usuario.email,
-    estado: !usuario.estado,
-    idRol: usuario.idRol
+  const usuario: Usuario = {
+    idUsuario: 0,
+    nombre: this.nuevoUsuario.nombre,
+    email: this.nuevoUsuario.email,
+    contraseña: this.passwordTemp,
+    estado: this.nuevoUsuario.estado ?? true,
+    fechaRegistro: this.nuevoUsuario.fechaRegistro!,
+    idRol: this.nuevoUsuario.idRol!
   };
 
-  this.apiService.updateUsuario(usuario.idUsuario, payload).subscribe({
-    next: (usuarioActualizado) => {
-      usuario.estado = usuarioActualizado.estado;
+  this.apiService.createUsuario(usuario).subscribe({
+    next: u => {
+      this.usuarios.push(u);
+      this.filteredUsuarios = [...this.usuarios];
+      this.closeAddModal();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Usuario creado',
+        text: 'El usuario se registró exitosamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     },
     error: () => {
-      alert('No se pudo actualizar el estado');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo crear el usuario',
+        confirmButtonColor: '#d32f2f'
+      });
     }
   });
 }
 
+toggleEstado(usuario: Usuario): void {
+  Swal.fire({
+    title: usuario.estado ? '¿Desactivar usuario?' : '¿Activar usuario?',
+    text: `Usuario: ${usuario.nombre}`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#ff6f00',
+    cancelButtonColor: '#9e9e9e',
+    confirmButtonText: 'Sí',
+    cancelButtonText: 'Cancelar'
+  }).then(result => {
+    if (!result.isConfirmed) return;
 
-  deleteUsuario(usuario: Usuario): void {
-    if (!usuario.idUsuario) return;
+    const payload = {
+      nombre: usuario.nombre,
+      email: usuario.email,
+      estado: usuario.estado ? false : true,
+      idRol: usuario.idRol
+    };
 
-    if (confirm(`¿Eliminar a ${usuario.nombre}?`)) {
-      this.apiService.deleteUsuario(usuario.idUsuario).subscribe({
-        next: () => {
-          this.usuarios = this.usuarios.filter(u => u.idUsuario !== usuario.idUsuario);
-          this.filteredUsuarios = [...this.usuarios];
-        },
-        error: err => console.error(err)
-      });
-    }
+    this.apiService.updateUsuario(usuario.idUsuario, payload).subscribe({
+     next: (usuarioActualizado) => {
+
+  const estadoBooleano = String(usuarioActualizado.estado) === 'true';
+
+  const index = this.usuarios.findIndex(
+    u => u.idUsuario === usuario.idUsuario
+  );
+
+  if (index !== -1) {
+    this.usuarios[index] = {
+      ...this.usuarios[index],
+      estado: estadoBooleano
+    };
   }
+
+  this.usuarios = [...this.usuarios]; // fuerza render
+
+  Swal.fire({
+    icon: 'success',
+    title: estadoBooleano ? 'Usuario activado' : 'Usuario desactivado',
+    timer: 1500,
+    showConfirmButton: false
+  });
+},
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo cambiar el estado'
+        });
+      }
+    });
+  });
+}
+
+
+
+
+deleteUsuario(usuario: Usuario): void {
+  if (!usuario.idUsuario) return;
+
+  Swal.fire({
+    title: '¿Eliminar usuario?',
+    text: `Se eliminará a ${usuario.nombre}`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d32f2f',
+    cancelButtonColor: '#9e9e9e',
+    confirmButtonText: 'Eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then(result => {
+    if (!result.isConfirmed) return;
+
+    this.apiService.deleteUsuario(usuario.idUsuario).subscribe({
+      next: () => {
+        this.usuarios = this.usuarios.filter(u => u.idUsuario !== usuario.idUsuario);
+        this.filteredUsuarios = [...this.usuarios];
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Usuario eliminado',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      },
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo eliminar el usuario'
+        });
+      }
+    });
+  });
+}
+
 
   getRolNombre(idRol: number, usuario?: Usuario): string {
     // Si se pasa el usuario directamente, usar su rol primero
@@ -227,13 +307,27 @@ updateUsuario(): void {
         this.usuarios[index] = usuarioActualizado;
         this.filteredUsuarios = [...this.usuarios];
       }
+
       this.closeEditModal();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Usuario actualizado',
+        text: 'Los datos fueron guardados correctamente',
+        timer: 1800,
+        showConfirmButton: false
+      });
     },
     error: () => {
-      alert('Error al actualizar usuario');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo actualizar el usuario'
+      });
     }
   });
 }
+
 openAddModal(): void {
   this.isEditMode = false;
   this.usuarioEditId = null;

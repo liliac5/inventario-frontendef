@@ -49,7 +49,7 @@
               [disabled]="!aulaSeleccionada || getBienesAsignados().length === 0">
               <option [ngValue]="null">Seleccione un bien</option>
               <option *ngFor="let bien of getBienesAsignados()" [ngValue]="bien.idBien">
-                {{ bien.nombre_bien }}
+                {{ bien.nombreBien }}
               </option>
               <option *ngIf="aulaSeleccionada && getBienesAsignados().length === 0" disabled>
                 No hay bienes disponibles en esta aula

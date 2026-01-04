@@ -6,7 +6,7 @@ export interface Bien {
   codigo_bien: string;
   codigo_inventario: string;
   codigo_secap: string;
-  nombre_bien: string;
+  nombreBien: string;
   descripcion: string;
   tipo_bien: string;
   clase_bien: string;
@@ -28,4 +28,5 @@ export interface Bien {
   id_categoria: number;
   categoria?: Categoria;
   aula?: Aula;
+
 }

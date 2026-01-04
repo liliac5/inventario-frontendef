@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import { BienesService } from '../../services/bienes.service';
 import { CategoriasService } from '../../services/categorias.service';
 import { AulasService } from '../../services/aulas.service';
-
+import { ApiService } from '../../services/api.service';
 @Component({
   selector: 'app-inventario',
   templateUrl: './inventario.component.html',
@@ -38,11 +38,21 @@ export class InventarioComponent implements OnInit {
   observaciones: '',
   observaciones2: '',
   origen: 'INVENTARIO',
-  idCategoria: null,
-  idAula: null
+  categoria: {
+    idCategoria: null
+  },
 };
     aulas: any[] = [];
 
+// Aulas asignadas a usuarios (SOLO ACTIVAS)
+aulasAsignadas: {
+  idAula: number;
+  nombreAula: string;
+  nombreUsuario: string;
+}[] = [];
+
+// Para mostrar el usuario seleccionado
+usuarioAulaSeleccionada: string = '';
 
   // 📊 Contadores
   totalBienes = 0;
@@ -84,15 +94,45 @@ export class InventarioComponent implements OnInit {
   constructor(
     private bienesService: BienesService,
     private categoriasService: CategoriasService,
-      private aulasService: AulasService
-
+      private aulasService: AulasService,
+    private apiService: ApiService
   ) {}
 
   ngOnInit(): void {
     this.loadBienes();
     this.loadCategorias();
       this.loadAulas();
+      this.loadAulasAsignadas();
+
   }
+resetForm() {
+  this.nuevoBien = {
+    codigoBien: '',
+    nombreBien: '',
+    tipoBien: '',
+    claseBien: '',
+    cuentaTipoBien: '',
+    codigoInventario: '',
+    codigoSecap: '',
+    descripcion: '',
+    especificaciones: '',
+    marca: '',
+    modelo: '',
+    serie: '',
+    valorCompraInicial: null,
+    valorConIva: null,
+    estado: '',
+    detalleEstado: '',
+    custodio: '',
+    ubicacion: '',
+    provincia: '',
+    observaciones: '',
+    observaciones2: '',
+    origen: 'INVENTARIO',
+    categoria: { idCategoria: null },
+    aula: { idAula: null }
+  };
+}
 
   // 📦 Cargar bienes
   loadBienes() {
@@ -123,177 +163,69 @@ export class InventarioComponent implements OnInit {
 
   // ➕ Modal Bien
   openAddModal() {
-    this.resetForm();
+    this.resetForm();   // 👈 ESTO ES LO CLAVE
+
     this.showAddModal = true;
   }
 
   closeAddModal() {
     this.showAddModal = false;
-    this.resetForm();
+      this.resetForm();
   }
 
   // ✅ Validar bien
  validarBien(): boolean {
   const b = this.nuevoBien;
 
-  // Validar campos de texto
-  if (!b.codigoBien || b.codigoBien.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Código del bien" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.nombreBien || b.nombreBien.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Nombre del bien" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.tipoBien || b.tipoBien.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Tipo de bien" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.claseBien || b.claseBien.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Clase del bien" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.cuentaTipoBien || b.cuentaTipoBien.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Cuenta tipo bien" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.codigoInventario || b.codigoInventario.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Código inventario" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.codigoSecap || b.codigoSecap.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Código SECAP" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.estado || b.estado.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Estado" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.ubicacion || b.ubicacion.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Ubicación" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.provincia || b.provincia.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Provincia" es obligatorio', 'warning');
-    return false;
-  }
-  if (!b.custodio || b.custodio.trim() === '') {
-    Swal.fire('Campos incompletos', 'El campo "Custodio" es obligatorio', 'warning');
+  if (
+    !b.codigoBien ||
+    !b.nombreBien ||
+    !b.tipoBien ||
+    !b.claseBien ||
+    !b.cuentaTipoBien ||
+    !b.codigoInventario ||
+    !b.codigoSecap ||
+    !b.estado ||
+    !b.ubicacion ||
+    !b.provincia ||
+    !b.valorCompraInicial ||
+    !b.valorConIva ||
+    !b.categoria.idCategoria
+  ) {
+    Swal.fire(
+      'Campos incompletos',
+      'Todos los campos obligatorios deben ser llenados',
+      'warning'
+    );
     return false;
   }
 
-  // Validar valores numéricos (pueden ser 0, pero no null/undefined/vacío)
-  if (b.valorCompraInicial === null || b.valorCompraInicial === undefined || b.valorCompraInicial === '') {
-    Swal.fire('Campos incompletos', 'El campo "Valor compra inicial" es obligatorio', 'warning');
-    return false;
-  }
-  if (isNaN(Number(b.valorCompraInicial))) {
-    Swal.fire('Campos incompletos', 'El campo "Valor compra inicial" debe ser un número válido', 'warning');
-    return false;
-  }
-
-  if (b.valorConIva === null || b.valorConIva === undefined || b.valorConIva === '') {
-    Swal.fire('Campos incompletos', 'El campo "Valor con IVA" es obligatorio', 'warning');
-    return false;
-  }
-  if (isNaN(Number(b.valorConIva))) {
-    Swal.fire('Campos incompletos', 'El campo "Valor con IVA" debe ser un número válido', 'warning');
-    return false;
-  }
-
-  // Validar categoría
-  if (!b.idCategoria || b.idCategoria === null || b.idCategoria === undefined || b.idCategoria === '') {
-    Swal.fire('Campos incompletos', 'Debe seleccionar una categoría', 'warning');
-    return false;
-  }
-
-  console.log('✅ Validación exitosa');
   return true;
 }
 
-  loadAulas() {
+loadAulas() {
   this.aulasService.getAll().subscribe(data => {
     this.aulas = data;
   });
 }
 
   // 💾 Guardar bien
-  saveBien() {
-    if (!this.validarBien()) return;
+saveBien() {
+  if (!this.validarBien()) return;
 
-    // Convertir valores numéricos explícitamente
-    const valorCompra = Number(this.nuevoBien.valorCompraInicial) || 0;
-    const valorIva = Number(this.nuevoBien.valorConIva) || 0;
+  this.bienesService.create(this.nuevoBien).subscribe({
+    next: () => {
+      Swal.fire('Éxito', 'Bien registrado correctamente', 'success');
+      this.closeAddModal();
+      this.loadBienes();
+    },
+    error: (err) => {
+      console.error(err);
+      Swal.fire('Error', err.error?.message || 'No se pudo guardar', 'error');
+    }
+  });
+}
 
-    // Mapear los campos al formato que espera el backend
-    const bienParaEnviar = {
-      codigo_bien: (this.nuevoBien.codigoBien || '').trim(),
-      codigo_inventario: (this.nuevoBien.codigoInventario || '').trim(),
-      codigo_secap: (this.nuevoBien.codigoSecap || '').trim(),
-      nombre_bien: (this.nuevoBien.nombreBien || '').trim(),
-      descripcion: (this.nuevoBien.descripcion || '').trim(),
-      tipo_bien: (this.nuevoBien.tipoBien || '').trim(),
-      clase_bien: (this.nuevoBien.claseBien || '').trim(),
-      cuenta_tipo_bien: (this.nuevoBien.cuentaTipoBien || '').trim(),
-      marca: (this.nuevoBien.marca || '').trim(),
-      modelo: (this.nuevoBien.modelo || '').trim(),
-      serie: (this.nuevoBien.serie || '').trim(),
-      especificaciones: (this.nuevoBien.especificaciones || '').trim(),
-      estado: (this.nuevoBien.estado || '').trim(),
-      detalle_estado: (this.nuevoBien.detalleEstado || '').trim(),
-      origen: this.nuevoBien.origen || 'INVENTARIO',
-      provincia: (this.nuevoBien.provincia || '').trim(),
-      ubicacion: (this.nuevoBien.ubicacion || '').trim(),
-      custodio: (this.nuevoBien.custodio || '').trim(),
-      valor_compra_inicial: valorCompra,
-      valor_con_iva: valorIva,
-      observaciones: (this.nuevoBien.observaciones || '').trim(),
-      observaciones2: (this.nuevoBien.observaciones2 || '').trim(),
-      id_categoria: this.nuevoBien.idCategoria || null,
-      id_aula: this.nuevoBien.idAula || null
-    };
-
-    this.bienesService.create(bienParaEnviar).subscribe({
-      next: () => {
-        Swal.fire('Éxito', 'Bien registrado correctamente', 'success');
-        this.closeAddModal();
-        this.loadBienes();
-      },
-      error: (err) => {
-        console.error('Error al guardar bien:', err);
-        Swal.fire('Error', 'No se pudo guardar el bien', 'error');
-      }
-    });
-  }
-
-  resetForm() {
-    this.nuevoBien = {
-      codigoBien: '',
-      nombreBien: '',
-      tipoBien: '',
-      claseBien: '',
-      cuentaTipoBien: '',
-      codigoInventario: '',
-      codigoSecap: '',
-      descripcion: '',
-      especificaciones: '',
-      marca: '',
-      modelo: '',
-      serie: '',
-      valorCompraInicial: null,
-      valorConIva: null,
-      estado: '',
-      detalleEstado: '',
-      custodio: '',
-      ubicacion: '',
-      provincia: '',
-      observaciones: '',
-      observaciones2: '',
-      origen: 'INVENTARIO',
-      idCategoria: null,
-      idAula: null
-    };
-  }
 
   // 👁️ Detalles
 openEditModal(bien: any) {
@@ -312,11 +244,6 @@ openEditModal(bien: any) {
 
   this.showDetailModal = true;
 }
-
-
-
-
-
   closeDetailModal() {
     this.showDetailModal = false;
   }
@@ -400,6 +327,31 @@ openEditModal(bien: any) {
         Swal.fire('Error', 'No se pudo actualizar el bien', 'error');
       }
     });
+}
+loadAulasAsignadas(): void {
+  this.apiService.getAsignaciones().subscribe({
+    next: (asignaciones: any[]) => {
+      this.aulasAsignadas = asignaciones
+        .filter(a => a.estado === true)
+        .map(a => ({
+          idAula: a.aula.idAula,
+          nombreAula: `${a.aula.nombre} - ${a.aula.ubicacion}`,
+          nombreUsuario: a.usuario.nombre
+        }));
+    },
+    error: () => {
+      console.error('Error cargando asignaciones');
+    }
+  });
+}
+onAulaSeleccionada(idAula: number | null): void {
+  if (!idAula) {
+    this.usuarioAulaSeleccionada = '';
+    return;
+  }
+
+  const aula = this.aulasAsignadas.find(a => a.idAula === idAula);
+  this.usuarioAulaSeleccionada = aula ? aula.nombreUsuario : '';
 }
 
 }

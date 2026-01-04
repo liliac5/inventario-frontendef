@@ -7,7 +7,7 @@ export interface Solicitud {
   bien?: Bien;
   docente?: { nombre: string }; // nombre del docente que pidió la solicitud
     fechaSolicitud?: string;
-  usuario?: {
+  usuario: {
     idUsuario: number;
     nombre: string;
   };
