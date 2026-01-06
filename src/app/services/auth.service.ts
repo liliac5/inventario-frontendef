@@ -1,11 +1,9 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Usuario } from '../models/usuario.model';
 import { ApiService } from './api.service';
 import { map } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
-import Swal from 'sweetalert2';
-import { SessionTimerService } from './session-timer.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +16,6 @@ export class AuthService {
     [3, 'Docente'],
     [4, 'Usuario']
   ]);
-  private logoutChannel = new BroadcastChannel('auth_logout_channel');
-  
   private redirectByRole(roleId: number): void {
   switch (roleId) {
     case 1:
@@ -39,44 +35,10 @@ export class AuthService {
 
   constructor(
     private router: Router,
-    private apiService: ApiService,
-    private ngZone: NgZone,
-    private sessionTimerService: SessionTimerService
+    private apiService: ApiService
   ) {
-    // Escuchar mensajes de cierre de sesión de otras ventanas
-    this.initLogoutListener();
-    
     // No eliminar la sesión al refrescar la página
     // La sesión se mantiene en localStorage
-  }
-
-  private initLogoutListener(): void {
-    this.logoutChannel.onmessage = (event) => {
-      if (event.data.type === 'logout') {
-        // Otra ventana cerró sesión, mostrar alerta y cerrar esta también
-        this.ngZone.run(() => {
-          this.showLogoutAlert();
-        });
-      }
-    };
-  }
-
-  private showLogoutAlert(): void {
-    // Mostrar alerta informativa antes de cerrar
-    Swal.fire({
-      title: 'Sesión cerrada',
-      text: 'Su sesión ha sido cerrada desde otra ventana. Será redirigido al inicio de sesión.',
-      icon: 'info',
-      confirmButtonColor: '#0d47a1',
-      confirmButtonText: 'Entendido',
-      allowOutsideClick: false,
-      customClass: {
-        popup: 'swal-logout-info-popup',
-        confirmButton: 'swal-logout-info-confirm'
-      }
-    }).then(() => {
-      this.performLogout(false); // false = no enviar mensaje (evitar loop)
-    });
   }
 
  login(email: string, contraseña: string): Observable<Usuario> {
@@ -120,9 +82,6 @@ export class AuthService {
       localStorage.setItem('currentUser', JSON.stringify(usuario));
       localStorage.setItem('token', tokenResponse);
 
-      // Iniciar timer de sesión
-      this.sessionTimerService.startSession();
-
       // NO hacemos redirect aquí, lo maneja el componente
       return usuario;
     })
@@ -155,41 +114,8 @@ private mapRolToId(rol: string | number): number {
 
 
   logout(): void {
-    // Notificar a otras ventanas que se cerró sesión
-    try {
-      this.logoutChannel.postMessage({
-        type: 'logout',
-        timestamp: Date.now()
-      });
-    } catch (error) {
-      console.error('Error enviando mensaje de logout:', error);
-    }
-    
-    // Cerrar sesión en esta ventana
-    this.performLogout(false);
-  }
-
-  private performLogout(broadcast: boolean = true): void {
     this.currentUser = null;
     localStorage.removeItem('currentUser');
-    localStorage.removeItem('token');
-    
-    // Detener timer de sesión
-    this.sessionTimerService.stopTimer();
-    
-    // Si debe hacer broadcast y no lo hemos hecho ya
-    if (broadcast) {
-      try {
-        this.logoutChannel.postMessage({
-          type: 'logout',
-          timestamp: Date.now()
-        });
-      } catch (error) {
-        console.error('Error enviando mensaje de logout:', error);
-      }
-    }
-    
-    // Redirigir al login
     this.router.navigate(['/login']);
   }
 
@@ -240,19 +166,19 @@ private mapRolToId(rol: string | number): number {
     const roleId = this.getCurrentUserRoleId();
     
     // Rutas solo para Admin
-    const adminOnlyRoutes = ['/usuarios'];
+    const adminOnlyRoutes = ['/usuarios', '/reportes'];
     if (adminOnlyRoutes.includes(route) && roleId !== 1) {
       return false;
     }
     
     // Rutas para Admin y Coordinador
-    const adminCoordinadorRoutes = ['/inventario', '/asignacion-aula', '/solicitudes-cambio', '/reportes'];
+    const adminCoordinadorRoutes = ['/inventario', '/asignacion-aula', '/solicitudes-cambio'];
     if (adminCoordinadorRoutes.includes(route) && (roleId !== 1 && roleId !== 2)) {
       return false;
     }
     
     // Rutas para Docente
-    const docenteRoutes = ['/portal-docente', '/mi-aula-asignada', '/reportes-docente'];
+    const docenteRoutes = ['/portal-docente', '/mi-aula-asignada'];
     if (docenteRoutes.includes(route) && roleId !== 3) {
       return false;
     }

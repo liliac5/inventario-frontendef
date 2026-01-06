@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: inventario-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+    # Render asigna automáticamente el puerto a través de process.env.PORT
+    # Si tu backend está en Render, actualiza la URL en:
+    # src/environments/environment.prod.ts
+

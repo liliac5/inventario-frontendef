@@ -26,11 +26,9 @@ export class MiAulaAsignadaComponent implements OnInit {
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     if (user) {
-      this.currentUser = user.nombre || 'Docente';
+      this.currentUser = user.nombre;
       this.currentUserId = user.idUsuario;
       this.loadMiAsignacion();
-    } else {
-      this.currentUser = 'Docente';
     }
   }
 

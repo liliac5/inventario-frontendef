@@ -11,6 +11,7 @@ import { Docente } from '../models/docente.model';
 import { Solicitud } from '../models/solicitud.model';
 import { Notificacion } from '../models/notificacion.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -39,7 +40,7 @@ export class ApiService {
       Authorization: `Bearer ${token}`
     });
   }
-private baseUrl = 'http://localhost:8080/api'; // Ajusta si usas otro puerto
+private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -200,37 +201,6 @@ denegarSolicitud(id: number) {
   deleteUsuario(id: number): Observable<void> {
     return this.http.delete<void>(
       `${this.baseUrl}/usuarios/${id}`,
-      { headers: this.getHeaders() }
-    );
-  }
-
-  // Métodos para Reportes de Incidencias
-  getReportes(): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.baseUrl}/reportes`,
-      { headers: this.getHeaders() }
-    );
-  }
-
-  getReportesByUsuario(idUsuario: number): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.baseUrl}/reportes/usuario/${idUsuario}`,
-      { headers: this.getHeaders() }
-    );
-  }
-
-  createReporte(reporte: any): Observable<any> {
-    return this.http.post<any>(
-      `${this.baseUrl}/reportes`,
-      reporte,
-      { headers: this.getHeaders() }
-    );
-  }
-
-  updateReporte(id: number, reporte: any): Observable<any> {
-    return this.http.put<any>(
-      `${this.baseUrl}/reportes/${id}`,
-      reporte,
       { headers: this.getHeaders() }
     );
   }
